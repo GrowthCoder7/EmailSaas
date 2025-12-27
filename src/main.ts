@@ -1,12 +1,13 @@
 import { VectorDbService } from "./services/weaviate-client.js";
 import { EmbeddingService } from "./services/embeddings-service.js";
 import { LLMService } from "./services/LLMService.js";
+import { smartChunk } from "./services/chunking-utils.js";
+
 // --- A. The Ingestion Flow (Write Path) ---
 async function ingestEmail(emailId: string, subject: string, body: string) {
     console.log(`\n📥 Ingesting Email: "${subject}"`);
-    
-    // 1. Chunking: Split by sentence for simplicity
-    const chunks = body.split('. ').map(s => s.trim()).filter(s => s.length > 5);
+    const context=`${subject}.${body}`
+    const chunks=smartChunk(context,150,30);
     
     if (chunks.length === 0) return;
 
