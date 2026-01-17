@@ -1,5 +1,19 @@
 version: '3.4'
 services:
+  # 1. PostgreSQL (Required for Prisma)
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mailwise_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+  # 2. Weaviate (Your Config)
   weaviate:
     command:
     - --host
@@ -17,6 +31,9 @@ services:
       QUERY_DEFAULTS_LIMIT: 25
       AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
       PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
-      DEFAULT_VECTORIZER_MODULE: 'none' # We will provide vectors manually from OpenAI
+      DEFAULT_VECTORIZER_MODULE: 'none' 
       ENABLE_MODULES: ''
       CLUSTER_HOSTNAME: 'node1'
+
+volumes:
+  postgres_data:

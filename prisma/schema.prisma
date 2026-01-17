@@ -1,0 +1,64 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  name      String?
+  accounts  Account[]
+  createdAt DateTime  @default(now())
+}
+
+model Account {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  emailAddress String // e.g. "prince@gmail.com"
+  provider     String // "gmail", "outlook", "imap"
+
+  accessToken  String?
+  refreshToken String?
+
+  // Storing JSON for host/port config
+  imapConfig Json?
+
+  emails    Email[]
+  createdAt DateTime @default(now())
+}
+
+model Email {
+  id String @id @default(uuid())
+
+  accountId String
+  account   Account @relation(fields: [accountId], references: [id])
+
+  providerUid Int // The generic IMAP UID
+  threadId    String?
+
+  subject String
+  from    String
+  to      Json // Stored as JSON array
+  cc      Json?
+  bcc     Json?
+
+  bodyText String @db.Text // Use @db.Text for large content
+  bodyHtml String @db.Text
+
+  folder String  @default("INBOX")
+  isRead Boolean @default(false)
+
+  receivedAt DateTime
+  createdAt  DateTime @default(now())
+
+  // Composite unique constraint: An account can't have duplicate UIDs
+  @@unique([accountId, providerUid])
+}
